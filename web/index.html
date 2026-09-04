@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="BAAI – Smart Household Management Platform">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="BAAI">
+  <title>BAAI – Smart Household Management</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #12131F;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+    /* Loading screen */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #12131F 0%, #1A1B2E 50%, #232541 100%);
+    }
+    .loading .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #6C63FF, #8B5CF6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 24px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .loading p {
+      color: #9CA3AF;
+      font-size: 14px;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(108, 99, 255, 0.1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="logo">B</div>
+    <p>Loading BAAI...</p>
+  </div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
