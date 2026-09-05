@@ -487,7 +487,7 @@ class _InventoryTileState extends State<InventoryTile> with SingleTickerProvider
   Widget build(BuildContext context) {
     final item = widget.item;
     final ratio = item.reorderThreshold > 0 ? (item.quantity / (item.reorderThreshold * 3)).clamp(0.0, 1.0) : 1.0;
-    final barColor = item.isLowStock ? BaaiTheme.error : (ratio < 0.5 ? BaaiTheme.warning : BaaiTheme.success);
+    final barColor = item.isLowStock ? BaaiTheme.error : (ratio < 0.5 ? BaaiTheme.warning : BaaiTheme.primary);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
@@ -642,7 +642,7 @@ class _AnimatedInventoryTileState extends State<AnimatedInventoryTile> with Sing
   Widget build(BuildContext context) {
     final item = widget.item;
     final ratio = item.reorderThreshold > 0 ? (item.quantity / (item.reorderThreshold * 3)).clamp(0.0, 1.0) : 1.0;
-    final barColor = item.isLowStock ? BaaiTheme.error : (ratio < 0.5 ? BaaiTheme.warning : BaaiTheme.success);
+    final barColor = item.isLowStock ? BaaiTheme.error : (ratio < 0.5 ? BaaiTheme.warning : BaaiTheme.primary);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
@@ -827,15 +827,15 @@ class AlertTile extends StatelessWidget {
         duration: BaaiTheme.fastAnim,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: alert.isRead ? BaaiTheme.card.withOpacity(0.3) : BaaiTheme.card.withOpacity(0.7),
+          color: alert.isRead ? BaaiTheme.card.withValues(alpha: 0.3) : BaaiTheme.card.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(12),
-          border: alert.isRead ? null : Border.all(color: alert.color.withOpacity(0.3)),
+          border: alert.isRead ? null : Border.all(color: alert.color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: alert.color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: alert.color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
               child: Icon(alert.icon, color: alert.color, size: 20),
             ),
             const SizedBox(width: 12),
@@ -851,6 +851,291 @@ class AlertTile extends StatelessWidget {
             ),
             if (!alert.isRead) Container(width: 8, height: 8, decoration: BoxDecoration(color: alert.color, shape: BoxShape.circle)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Voice Center Widget ──────────────────────────────────────────
+// Prominent, immersive voice assistant component for the Kiosk
+class VoiceCenterWidget extends StatefulWidget {
+  final bool isRecording;
+  final VoidCallback onMicTap;
+  final String currentTranscript;
+  
+  const VoiceCenterWidget({
+    super.key,
+    required this.isRecording,
+    required this.onMicTap,
+    this.currentTranscript = '',
+  });
+
+  @override
+  State<VoiceCenterWidget> createState() => _VoiceCenterWidgetState();
+}
+
+class _VoiceCenterWidgetState extends State<VoiceCenterWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+    if (widget.isRecording) _pulseController.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant VoiceCenterWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isRecording && !oldWidget.isRecording) {
+      _pulseController.repeat();
+    } else if (!widget.isRecording && oldWidget.isRecording) {
+      _pulseController.stop();
+      _pulseController.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: BaaiTheme.mediumAnim,
+      decoration: widget.isRecording ? BaaiTheme.kioskCardHover : BaaiTheme.kioskCard,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.isRecording ? 'Listening...' : 'Tap to Speak',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: widget.isRecording ? BaaiTheme.accent : BaaiTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 32),
+          GestureDetector(
+            onTap: widget.onMicTap,
+            child: SizedBox(
+              width: 140,
+              height: 140,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (widget.isRecording)
+                    ...List.generate(3, (index) {
+                      return AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          final double delay = index * 0.33;
+                          double progress = (_pulseController.value + delay) % 1.0;
+                          return Transform.scale(
+                            scale: 1.0 + (progress * 1.5),
+                            child: Opacity(
+                              opacity: (1.0 - progress).clamp(0.0, 1.0) * 0.5,
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: BaaiTheme.accent,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }),
+                  AnimatedContainer(
+                    duration: BaaiTheme.fastAnim,
+                    width: widget.isRecording ? 100 : 80,
+                    height: widget.isRecording ? 100 : 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: widget.isRecording ? BaaiTheme.accentGradient : BaaiTheme.primaryGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (widget.isRecording ? BaaiTheme.accent : BaaiTheme.primary).withValues(alpha: 0.4),
+                          blurRadius: widget.isRecording ? 40 : 20,
+                          spreadRadius: widget.isRecording ? 10 : 2,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.mic,
+                      size: widget.isRecording ? 48 : 36,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          AnimatedOpacity(
+            opacity: widget.currentTranscript.isNotEmpty ? 1.0 : 0.0,
+            duration: BaaiTheme.fastAnim,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: BaaiTheme.background.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                widget.currentTranscript.isNotEmpty ? '"${widget.currentTranscript}"' : '"..."',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic, color: BaaiTheme.textSecondary),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Side Navigation Widget ──────────────────────────────────────
+class SideNavigation extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onItemSelected;
+
+  const SideNavigation({
+    super.key,
+    required this.selectedIndex,
+    required this.onItemSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 260,
+      decoration: BoxDecoration(
+        color: BaaiTheme.surface.withValues(alpha: 0.6),
+        border: Border(right: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: BaaiTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.home_work, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 16),
+                const Text(
+                  'BAAI',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 48),
+          _NavItem(
+            icon: Icons.dashboard_rounded,
+            label: 'Dashboard',
+            isSelected: selectedIndex == 0,
+            onTap: () => onItemSelected(0),
+          ),
+          _NavItem(
+            icon: Icons.task_alt_rounded,
+            label: 'Tasks',
+            isSelected: selectedIndex == 1,
+            onTap: () => onItemSelected(1),
+          ),
+          _NavItem(
+            icon: Icons.kitchen_rounded,
+            label: 'Smart Pantry',
+            isSelected: selectedIndex == 2,
+            onTap: () => onItemSelected(2),
+          ),
+          _NavItem(
+            icon: Icons.people_alt_rounded,
+            label: 'Staff Logs',
+            isSelected: selectedIndex == 3,
+            onTap: () => onItemSelected(3),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.isSelected ? Colors.white : BaaiTheme.textSecondary;
+    final bgColor = widget.isSelected ? BaaiTheme.primary.withValues(alpha: 0.15) : (_hovering ? Colors.white.withValues(alpha: 0.05) : Colors.transparent);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: BaaiTheme.fastAnim,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          margin: const EdgeInsets.only(bottom: 8, right: 16),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+            border: widget.isSelected ? Border(left: BorderSide(color: BaaiTheme.primary, width: 4)) : const Border(left: BorderSide(color: Colors.transparent, width: 4)),
+          ),
+          child: Row(
+            children: [
+              Icon(widget.icon, color: widget.isSelected ? BaaiTheme.primary : color, size: 22),
+              const SizedBox(width: 16),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

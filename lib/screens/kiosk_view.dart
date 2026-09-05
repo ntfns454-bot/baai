@@ -184,25 +184,8 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
               child: Column(
                 children: [
                   const SizedBox(height: 24),
-                  // Mic button — prominent, with pulse/waveform
-                  PulsingMicButton(
-                    isRecording: state.isRecording,
-                    isKiosk: true,
-                    onTap: () {
-                      if (state.isRecording) _voiceService.stopListening();
-                      else _voiceService.startListening();
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  AnimatedDefaultTextStyle(
-                    duration: BaaiTheme.fastAnim,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: state.isRecording ? FontWeight.w700 : FontWeight.w400,
-                      color: state.isRecording ? BaaiTheme.error : BaaiTheme.textSecondary,
-                    ),
-                    child: Text(state.isRecording ? 'Recording…' : 'Tap to Speak'),
-                  ),
+                  // Removed mic button to center it prominently in the tasks view
+                  const SizedBox(height: 12),
                   const SizedBox(height: 28),
                   // Quick stats
                   _kioskStat('Pending', '${state.pendingTasks.length}', BaaiTheme.warning),
@@ -298,11 +281,27 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
   // ─── Kiosk Tasks ───────────────────────────────────────────
   Widget _buildKioskTasks(AppState state) {
     final activeTasks = state.tasks.where((t) => t.status != TaskStatus.completed).toList();
-    return ListView.builder(
-      key: const ValueKey('kiosk-tasks'),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 80),
-      itemCount: activeTasks.length,
-      itemBuilder: (_, i) => TaskCard(task: activeTasks[i], isKiosk: true),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          child: VoiceCenterWidget(
+            isRecording: state.isRecording,
+            onMicTap: () {
+              if (state.isRecording) _voiceService.stopListening();
+              else _voiceService.startListening();
+            },
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            key: const ValueKey('kiosk-tasks'),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 80),
+            itemCount: activeTasks.length,
+            itemBuilder: (_, i) => TaskCard(task: activeTasks[i], isKiosk: true),
+          ),
+        ),
+      ],
     );
   }
 

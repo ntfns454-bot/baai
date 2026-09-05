@@ -93,38 +93,41 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, state, _) {
       return Scaffold(
-        body: Row(
-          children: [
-            // ─── Side Navigation ──────────────────────
-            _buildSideNav(state),
-            // ─── Main Content ─────────────────────────
-            Expanded(
-              child: Column(
-                children: [
-                  _buildTopBar(state),
-                  Expanded(
-                    child: AnimatedBuilder(
-                      animation: _tabAnimController,
-                      builder: (context, child) {
-                        final slideIn = Tween<Offset>(
-                          begin: const Offset(0.03, 0),
-                          end: Offset.zero,
-                        ).animate(CurvedAnimation(parent: _tabAnimController, curve: BaaiTheme.defaultCurve));
-                        final fadeIn = CurvedAnimation(parent: _tabAnimController, curve: Curves.easeOut);
-                        return SlideTransition(
-                          position: slideIn,
-                          child: FadeTransition(opacity: fadeIn, child: child),
-                        );
-                      },
-                      child: _buildTabContent(state),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // ─── Right Panel (Alerts) ─────────────────
-            _buildAlertPanel(state),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(72),
+          child: _buildTopBar(state),
+        ),
+        body: AnimatedBuilder(
+          animation: _tabAnimController,
+          builder: (context, child) {
+            final slideIn = Tween<Offset>(
+              begin: const Offset(0.05, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: _tabAnimController, curve: BaaiTheme.defaultCurve));
+            final fadeIn = CurvedAnimation(parent: _tabAnimController, curve: Curves.easeOut);
+            return SlideTransition(
+              position: slideIn,
+              child: FadeTransition(opacity: fadeIn, child: child),
+            );
+          },
+          child: _buildTabContent(state),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentTabIndex,
+          onTap: _switchTab,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Staff'),
+            BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), activeIcon: Icon(Icons.inventory_2), label: 'Pantry'),
+            BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), activeIcon: Icon(Icons.account_balance_wallet), label: 'Wallet'),
           ],
+        ),
+        floatingActionButton: PulsingMicButton(
+          isRecording: state.isRecording,
+          onTap: () {
+            if (state.isRecording) { _voiceService.stopListening(); }
+            else { _voiceService.startListening(); }
+          },
         ),
       );
     });
@@ -133,177 +136,184 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
   Widget _buildTabContent(AppState state) {
     switch (_currentTabIndex) {
       case 0: return _buildOverview(state);
-      case 1: return _buildTaskList(state);
+      case 1: return _buildStaffView(state);
       case 2: return _buildPantry(state);
-      case 3: return _buildStaffView(state);
+      case 3: return _buildWallet(state);
       default: return _buildOverview(state);
     }
   }
 
-  // ─── Side Navigation ──────────────────────────────────────
-  Widget _buildSideNav(AppState state) {
-    final items = [
-      {'icon': Icons.dashboard_rounded, 'label': 'Overview'},
-      {'icon': Icons.task_alt, 'label': 'Tasks'},
-      {'icon': Icons.inventory_2, 'label': 'Pantry'},
-      {'icon': Icons.people_alt, 'label': 'Staff'},
-    ];
-
-    return Container(
-      width: 72,
-      decoration: BoxDecoration(
-        color: BaaiTheme.surface,
-        border: Border(right: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          // Logo
-          Container(
-            width: 44, height: 44,
-            decoration: BoxDecoration(gradient: BaaiTheme.primaryGradient, borderRadius: BorderRadius.circular(12)),
-            child: const Center(child: Text('B', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white))),
-          ),
-          const SizedBox(height: 24),
-          ...items.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            final isActive = _currentTabIndex == idx;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Tooltip(
-                message: item['label'] as String,
-                child: InkWell(
-                  onTap: () => _switchTab(idx),
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: BaaiTheme.fastAnim,
-                    width: 48, height: 48,
-                    decoration: BoxDecoration(
-                      color: isActive ? BaaiTheme.primary.withOpacity(0.15) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      border: isActive ? Border.all(color: BaaiTheme.primary.withOpacity(0.4)) : null,
-                    ),
-                    child: Icon(item['icon'] as IconData, color: isActive ? BaaiTheme.primary : BaaiTheme.textSecondary, size: 24),
-                  ),
-                ),
-              ),
-            );
-          }),
-          const Spacer(),
-          // Mic button
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: PulsingMicButton(
-              isRecording: state.isRecording,
-              onTap: () {
-                if (state.isRecording) { _voiceService.stopListening(); }
-                else { _voiceService.startListening(); }
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ─── Top Bar ───────────────────────────────────────────────
   Widget _buildTopBar(AppState state) {
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        color: BaaiTheme.surface,
-        border: Border(bottom: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
-      ),
-      child: Row(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(state.household.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
-              Text('Admin Workspace • ${_greeting()}', style: const TextStyle(fontSize: 12, color: BaaiTheme.textSecondary)),
-            ],
-          ),
-          const Spacer(),
-          if (state.isRecording)
-            AnimatedContainer(
-              duration: BaaiTheme.fastAnim,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: BaaiTheme.error.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
-              child: Row(
-                children: [
-                  _PulsingDot(color: BaaiTheme.error),
-                  const SizedBox(width: 8),
-                  const Text('Recording...', style: TextStyle(color: BaaiTheme.error, fontSize: 12, fontWeight: FontWeight.w600)),
-                ],
-              ),
+    return SafeArea(
+      child: Container(
+        height: 72,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: BaaiTheme.surface,
+          border: Border(bottom: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: BaaiTheme.primary.withOpacity(0.2),
+              child: const Icon(Icons.person, color: BaaiTheme.primaryDark),
             ),
-          const SizedBox(width: 12),
-          // Alert badge
-          Stack(
-            children: [
-              IconButton(icon: const Icon(Icons.notifications_outlined, color: BaaiTheme.textSecondary), onPressed: () {}),
-              if (state.unreadAlertCount > 0)
-                Positioned(right: 6, top: 6, child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: BaaiTheme.error, shape: BoxShape.circle),
-                  child: Text('${state.unreadAlertCount}', style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w700)),
-                )),
-            ],
-          ),
-        ],
+            const SizedBox(width: 12),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Project Baai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: BaaiTheme.primaryDark)),
+                const Text('Hello, Mr. Sharma.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+              ],
+            ),
+            const Spacer(),
+            if (state.isRecording)
+              AnimatedContainer(
+                duration: BaaiTheme.fastAnim,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: BaaiTheme.error.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                child: Row(
+                  children: [
+                    _PulsingDot(color: BaaiTheme.error),
+                    const SizedBox(width: 8),
+                    const Text('Recording...', style: TextStyle(color: BaaiTheme.error, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            const SizedBox(width: 12),
+            // Alert badge
+            Stack(
+              children: [
+                IconButton(icon: const Icon(Icons.notifications_outlined, color: BaaiTheme.textPrimary), onPressed: () {}),
+                if (state.unreadAlertCount > 0)
+                  Positioned(right: 6, top: 6, child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: BaaiTheme.error, shape: BoxShape.circle),
+                    child: Text('${state.unreadAlertCount}', style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w700)),
+                  )),
+              ],
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  String _greeting() {
-    final h = DateTime.now().hour;
-    if (h < 12) return 'Good Morning';
-    if (h < 17) return 'Good Afternoon';
-    return 'Good Evening';
   }
 
   // ─── Overview Tab ──────────────────────────────────────────
   Widget _buildOverview(AppState state) {
     return SingleChildScrollView(
       key: const ValueKey('overview'),
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stat cards
-          SizedBox(
-            height: 140,
+          // "Assign Today's Menu" Section
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BaaiTheme.glassCard,
             child: Row(
               children: [
-                Expanded(child: StatCard(title: 'Pending Tasks', value: '${state.pendingTasks.length}', icon: Icons.pending_actions, gradient: BaaiTheme.primaryGradient)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Assign Today's Menu", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: BaaiTheme.primary,
+                          foregroundColor: BaaiTheme.textPrimary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          elevation: 0,
+                        ),
+                        child: const Text('View Staff Schedules', style: TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 16),
-                Expanded(child: StatCard(title: 'In Progress', value: '${state.inProgressTasks.length}', icon: Icons.trending_up, gradient: BaaiTheme.accentGradient)),
-                const SizedBox(width: 16),
-                Expanded(child: StatCard(title: 'Completed Today', value: '${state.completedTasks.length}', icon: Icons.check_circle, gradient: BaaiTheme.successGradient)),
-                const SizedBox(width: 16),
-                Expanded(child: StatCard(title: 'Low Stock Items', value: '${state.lowStockItems.length}', icon: Icons.warning_amber, gradient: BaaiTheme.warmGradient)),
+                const Icon(Icons.restaurant_menu, size: 60, color: BaaiTheme.primaryDark),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          // Recent Tasks
-          const Text('Today\'s Tasks', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+          
+          // "Today's Routine" Module
+          const Text("Today's Routine", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
           const SizedBox(height: 12),
-          ...state.tasks.take(6).map((t) => TaskCard(task: t)),
+          ...state.tasks.take(4).map((t) => TaskCard(task: t)),
+          
           const SizedBox(height: 24),
-          // Low Stock Preview
-          const Text('Pantry Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+          // "Pantry Stock" Module
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Pantry Stock", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+              if (state.lowStockItems.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: BaaiTheme.error.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, size: 14, color: BaaiTheme.error),
+                      const SizedBox(width: 4),
+                      Text('${state.lowStockItems.length} Low Stock', style: const TextStyle(fontSize: 12, color: BaaiTheme.error, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                )
+            ],
+          ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 150,
-            child: GridView.builder(
-              scrollDirection: Axis.horizontal,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 1, mainAxisExtent: 160, crossAxisSpacing: 12, mainAxisSpacing: 12),
-              itemCount: state.inventory.length.clamp(0, 10),
-              itemBuilder: (_, i) => AnimatedInventoryTile(item: state.inventory[i]),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: state.inventory.take(3).length,
+            itemBuilder: (_, i) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AnimatedInventoryTile(item: state.inventory[i]),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          // "Staff Overview" Module
+          const Text("Staff Overview", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BaaiTheme.glassCard,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: state.staff.take(4).map((s) => Column(
+                children: [
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: BaaiTheme.surfaceLight,
+                        child: Icon(s.roleIcon, color: BaaiTheme.primaryDark, size: 28),
+                      ),
+                      if (s.isOnDuty)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(color: BaaiTheme.success, shape: BoxShape.circle),
+                            child: const Icon(Icons.check, size: 12, color: Colors.white),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(s.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
+                  Text(s.roleLabel, style: const TextStyle(fontSize: 10, color: BaaiTheme.textSecondary)),
+                ],
+              )).toList(),
             ),
           ),
         ],
@@ -311,71 +321,67 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     );
   }
 
-  // ─── Tasks Tab ─────────────────────────────────────────────
-  Widget _buildTaskList(AppState state) {
-    return SingleChildScrollView(
-      key: const ValueKey('tasks'),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  // ─── Staff Tab ─────────────────────────────────────────────
+  Widget _buildStaffView(AppState state) {
+    return ListView.builder(
+      key: const ValueKey('staff'),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      itemCount: state.staff.length,
+      itemBuilder: (_, i) {
+        final s = state.staff[i];
+        final taskCount = state.tasks.where((t) => t.assignedTo == s.id && t.status != TaskStatus.completed).length;
+        return AnimatedContainer(
+          duration: BaaiTheme.mediumAnim,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BaaiTheme.glassCard,
+          child: Row(
             children: [
-              const Text('All Tasks', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
-              const Spacer(),
-              Text('${state.tasks.length} total', style: const TextStyle(color: BaaiTheme.textSecondary)),
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: BaaiTheme.primary.withOpacity(0.2),
+                child: Icon(s.roleIcon, color: BaaiTheme.primaryDark, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
+                    const SizedBox(height: 4),
+                    Text(s.roleLabel, style: const TextStyle(fontSize: 12, color: BaaiTheme.textSecondary)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8, height: 8,
+                          decoration: BoxDecoration(color: s.isOnDuty ? BaaiTheme.success : BaaiTheme.textSecondary, shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(s.isOnDuty ? 'On Duty' : 'Off Duty', style: TextStyle(fontSize: 11, color: s.isOnDuty ? BaaiTheme.success : BaaiTheme.textSecondary)),
+                        const SizedBox(width: 12),
+                        Text('$taskCount tasks', style: const TextStyle(fontSize: 11, color: BaaiTheme.textSecondary)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          if (state.overdueTasks.isNotEmpty) ...[
-            _sectionHeader('Overdue', BaaiTheme.error, state.overdueTasks.length),
-            ...state.overdueTasks.map((t) => TaskCard(task: t)),
-          ],
-          if (state.inProgressTasks.isNotEmpty) ...[
-            _sectionHeader('In Progress', BaaiTheme.info, state.inProgressTasks.length),
-            ...state.inProgressTasks.map((t) => TaskCard(task: t)),
-          ],
-          _sectionHeader('Pending', BaaiTheme.warning, state.pendingTasks.length),
-          ...state.pendingTasks.map((t) => TaskCard(task: t)),
-          if (state.completedTasks.isNotEmpty) ...[
-            _sectionHeader('Completed', BaaiTheme.success, state.completedTasks.length),
-            ...state.completedTasks.map((t) => TaskCard(task: t)),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionHeader(String title, Color color, int count) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      child: Row(
-        children: [
-          Container(width: 4, height: 20, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 8),
-          Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: color)),
-          const SizedBox(width: 8),
-          AnimatedContainer(
-            duration: BaaiTheme.mediumAnim,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-            child: Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   // ─── Pantry Tab ────────────────────────────────────────────
   Widget _buildPantry(AppState state) {
     final categories = state.inventory.map((i) => i.category).toSet().toList()..sort();
-
-    // Low stock banner at top
     final lowStockCount = state.lowStockItems.length;
 
     return SingleChildScrollView(
       key: const ValueKey('pantry'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -387,8 +393,6 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                 _PulsingLowStockBanner(count: lowStockCount),
             ],
           ),
-          const SizedBox(height: 8),
-          const Text('Completing recipe tasks auto-deducts ingredients.', style: TextStyle(fontSize: 13, color: BaaiTheme.textSecondary)),
           const SizedBox(height: 20),
           // Recipes section
           const Text('Recipes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
@@ -401,7 +405,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               itemBuilder: (_, i) {
                 final r = state.recipes[i];
                 return Container(
-                  width: 200,
+                  width: 240,
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.all(14),
                   decoration: BaaiTheme.glassCard,
@@ -428,7 +432,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
             ),
           ),
           const SizedBox(height: 24),
-          // Inventory by category
+          // Inventory by category (List instead of Grid for mobile)
           ...categories.map((cat) {
             final items = state.inventory.where((i) => i.category == cat).toList();
             return Column(
@@ -436,14 +440,16 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               children: [
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10, top: 8),
-                  child: Text(cat, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: BaaiTheme.accent)),
+                  child: Text(cat, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
                 ),
-                GridView.builder(
+                ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: 1.4, crossAxisSpacing: 12, mainAxisSpacing: 12),
                   itemCount: items.length,
-                  itemBuilder: (_, i) => AnimatedInventoryTile(item: items[i]),
+                  itemBuilder: (_, i) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: AnimatedInventoryTile(item: items[i]),
+                  ),
                 ),
               ],
             );
@@ -453,107 +459,18 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     );
   }
 
-  // ─── Staff Tab ─────────────────────────────────────────────
-  Widget _buildStaffView(AppState state) {
-    return SingleChildScrollView(
-      key: const ValueKey('staff'),
-      padding: const EdgeInsets.all(24),
+  // ─── Wallet Tab ─────────────────────────────────────────────
+  Widget _buildWallet(AppState state) {
+    return Center(
+      key: const ValueKey('wallet'),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('Staff Directory', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+          Icon(Icons.account_balance_wallet, size: 80, color: BaaiTheme.primary.withOpacity(0.5)),
           const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 2.2, crossAxisSpacing: 16, mainAxisSpacing: 16),
-            itemCount: state.staff.length,
-            itemBuilder: (_, i) {
-              final s = state.staff[i];
-              final taskCount = state.tasks.where((t) => t.assignedTo == s.id && t.status != TaskStatus.completed).length;
-              return AnimatedContainer(
-                duration: BaaiTheme.mediumAnim,
-                padding: const EdgeInsets.all(16),
-                decoration: BaaiTheme.glassCard,
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: BaaiTheme.primary.withOpacity(0.2),
-                      child: Icon(s.roleIcon, color: BaaiTheme.primary, size: 24),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
-                          const SizedBox(height: 4),
-                          Text(s.roleLabel, style: const TextStyle(fontSize: 12, color: BaaiTheme.textSecondary)),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Container(
-                                width: 8, height: 8,
-                                decoration: BoxDecoration(color: s.isOnDuty ? BaaiTheme.success : BaaiTheme.textSecondary, shape: BoxShape.circle),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(s.isOnDuty ? 'On Duty' : 'Off Duty', style: TextStyle(fontSize: 11, color: s.isOnDuty ? BaaiTheme.success : BaaiTheme.textSecondary)),
-                              const SizedBox(width: 12),
-                              Text('$taskCount tasks', style: const TextStyle(fontSize: 11, color: BaaiTheme.textSecondary)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── Alert Panel ───────────────────────────────────────────
-  Widget _buildAlertPanel(AppState state) {
-    return Container(
-      width: 300,
-      decoration: BoxDecoration(
-        color: BaaiTheme.surface,
-        border: Border(left: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Text('Alerts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
-                const Spacer(),
-                if (state.alerts.isNotEmpty)
-                  TextButton(
-                    onPressed: () => state.clearAlerts(),
-                    child: const Text('Clear', style: TextStyle(fontSize: 12, color: BaaiTheme.textSecondary)),
-                  ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: state.alerts.isEmpty
-              ? const Center(child: Text('No alerts', style: TextStyle(color: BaaiTheme.textSecondary)))
-              : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: state.alerts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, i) => AlertTile(
-                    alert: state.alerts[i],
-                    onTap: () => state.markAlertRead(state.alerts[i].id),
-                  ),
-                ),
-          ),
+          const Text('Wallet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+          const SizedBox(height: 8),
+          const Text('Manage expenses and staff payments here.', style: TextStyle(color: BaaiTheme.textSecondary)),
         ],
       ),
     );
