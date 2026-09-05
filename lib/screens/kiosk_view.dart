@@ -27,7 +27,10 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
     _tabAnimController = AnimationController(vsync: this, duration: BaaiTheme.mediumAnim)..forward();
     _voiceService.updateStockLevels(context.read<AppState>().currentStockLevels);
     _voiceService.onResult.listen(_handleVoiceResult);
-    _voiceService.onListeningChange.listen((v) => context.read<AppState>().setRecording(v));
+    _voiceService.onListeningChange.listen((v) {
+      if (!mounted) return;
+      context.read<AppState>().setRecording(v);
+    });
   }
 
   @override
@@ -104,7 +107,7 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
                     padding: const EdgeInsets.symmetric(horizontal: 28),
                     decoration: BoxDecoration(
                       color: BaaiTheme.surface,
-                      border: Border(bottom: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
+                      border: Border(bottom: BorderSide(color: BaaiTheme.divider.withValues(alpha: 0.5))),
                     ),
                     child: Row(
                       children: [
@@ -134,9 +137,9 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
                             margin: const EdgeInsets.only(right: 16),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: BaaiTheme.error.withOpacity(0.15),
+                              color: BaaiTheme.error.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: BaaiTheme.error.withOpacity(0.3)),
+                              border: Border.all(color: BaaiTheme.error.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -179,7 +182,7 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
               width: 130,
               decoration: BoxDecoration(
                 color: BaaiTheme.surface,
-                border: Border(left: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
+                border: Border(left: BorderSide(color: BaaiTheme.divider.withValues(alpha: 0.5))),
               ),
               child: Column(
                 children: [
@@ -206,7 +209,7 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
                             message: '${s.name} – ${s.roleLabel}',
                             child: CircleAvatar(
                               radius: 20,
-                              backgroundColor: BaaiTheme.primary.withOpacity(0.2),
+                              backgroundColor: BaaiTheme.primary.withValues(alpha: 0.2),
                               child: Icon(s.roleIcon, size: 20, color: BaaiTheme.primary),
                             ),
                           ),
@@ -233,9 +236,9 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
         constraints: const BoxConstraints(minHeight: 56),
         decoration: BoxDecoration(
-          color: active ? BaaiTheme.accent.withOpacity(0.15) : Colors.transparent,
+          color: active ? BaaiTheme.accent.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
-          border: active ? Border.all(color: BaaiTheme.accent.withOpacity(0.4), width: 2) : null,
+          border: active ? Border.all(color: BaaiTheme.accent.withValues(alpha: 0.4), width: 2) : null,
         ),
         child: Row(
           children: [
@@ -249,7 +252,7 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   color: BaaiTheme.accent,
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: BaaiTheme.accent.withOpacity(0.5), blurRadius: 6)],
+                  boxShadow: [BoxShadow(color: BaaiTheme.accent.withValues(alpha: 0.5), blurRadius: 6)],
                 ),
               ),
             ],
@@ -288,8 +291,11 @@ class _KioskViewState extends State<KioskView> with TickerProviderStateMixin {
           child: VoiceCenterWidget(
             isRecording: state.isRecording,
             onMicTap: () {
-              if (state.isRecording) _voiceService.stopListening();
-              else _voiceService.startListening();
+              if (state.isRecording) {
+                _voiceService.stopListening();
+              } else {
+                _voiceService.startListening();
+              }
             },
           ),
         ),
@@ -340,9 +346,9 @@ class _KioskPulsingDotState extends State<_KioskPulsingDot> with SingleTickerPro
         return Container(
           width: 10, height: 10,
           decoration: BoxDecoration(
-            color: BaaiTheme.error.withOpacity(0.5 + _ctrl.value * 0.5),
+            color: BaaiTheme.error.withValues(alpha: 0.5 + _ctrl.value * 0.5),
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: BaaiTheme.error.withOpacity(0.4 * _ctrl.value), blurRadius: 8)],
+            boxShadow: [BoxShadow(color: BaaiTheme.error.withValues(alpha: 0.4 * _ctrl.value), blurRadius: 8)],
           ),
         );
       },

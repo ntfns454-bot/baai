@@ -39,6 +39,10 @@ class AppState extends ChangeNotifier {
   int get selectedNavIndex => _selectedNavIndex;
   void setNavIndex(int i) { _selectedNavIndex = i; notifyListeners(); }
 
+  // ─── Wallet Data ────────────────────────────────────────────
+  double walletBalance = 0.0;
+  List<WalletTransaction> transactions = [];
+
   // ─── Init with Dummy Data ──────────────────────────────────
   AppState() {
     _loadDummyData();
@@ -50,6 +54,8 @@ class AppState extends ChangeNotifier {
     tasks = List.from(DummyData.dailyTasks);
     inventory = List.from(DummyData.inventoryItems);
     recipes = List.from(DummyData.recipes);
+    walletBalance = DummyData.defaultWalletBalance;
+    transactions = List.from(DummyData.walletTransactions);
     _generateInitialAlerts();
   }
 
@@ -57,6 +63,15 @@ class AppState extends ChangeNotifier {
     _loadDummyData();
     _selectedNavIndex = 0;
     notifyListeners();
+  }
+
+  // ─── Staff Operations ──────────────────────────────────────
+  void toggleStaffDuty(String staffId) {
+    final idx = staff.indexWhere((s) => s.id == staffId);
+    if (idx != -1) {
+      staff[idx].isOnDuty = !staff[idx].isOnDuty;
+      notifyListeners();
+    }
   }
 
   // ─── Task Operations ───────────────────────────────────────

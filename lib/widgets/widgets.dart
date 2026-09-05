@@ -131,7 +131,7 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
                         decoration: BoxDecoration(
                           color: widget.task.priorityColor,
                           shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: widget.task.priorityColor.withOpacity(0.5), blurRadius: 8)],
+                          boxShadow: [BoxShadow(color: widget.task.priorityColor.withValues(alpha: 0.5), blurRadius: 8)],
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -215,11 +215,11 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
                   return Container(
                     margin: EdgeInsets.only(bottom: isKiosk ? 16 : 10),
                     decoration: BoxDecoration(
-                      color: BaaiTheme.success.withOpacity(0.12 * _checkOpacity.value),
+                      color: BaaiTheme.success.withValues(alpha: 0.12 * _checkOpacity.value),
                       borderRadius: BorderRadius.circular(isKiosk ? 20 : 16),
                     ),
                     child: Center(
-                      child: Transform.scale(
+                      child: Transform.scaleByDouble(
                         scale: _checkScale.value,
                         child: Opacity(
                           opacity: _checkOpacity.value.clamp(0.0, 1.0),
@@ -230,7 +230,7 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
                               gradient: BaaiTheme.successGradient,
                               shape: BoxShape.circle,
                               boxShadow: [
-                                BoxShadow(color: BaaiTheme.success.withOpacity(0.4), blurRadius: 20, spreadRadius: 4),
+                                BoxShadow(color: BaaiTheme.success.withValues(alpha: 0.4), blurRadius: 20, spreadRadius: 4),
                               ],
                             ),
                             child: Icon(Icons.check_rounded, color: Colors.white, size: isKiosk ? 36 : 28),
@@ -264,10 +264,10 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     Color bg; Color fg; String label;
     switch (status) {
-      case TaskStatus.pending:    bg = BaaiTheme.warning.withOpacity(0.15); fg = BaaiTheme.warning; label = 'Pending';
-      case TaskStatus.inProgress: bg = BaaiTheme.info.withOpacity(0.15);    fg = BaaiTheme.info;    label = 'In Progress';
-      case TaskStatus.completed:  bg = BaaiTheme.success.withOpacity(0.15); fg = BaaiTheme.success; label = 'Done';
-      case TaskStatus.overdue:    bg = BaaiTheme.error.withOpacity(0.15);   fg = BaaiTheme.error;   label = 'Overdue';
+      case TaskStatus.pending:    bg = BaaiTheme.warning.withValues(alpha: 0.15); fg = BaaiTheme.warning; label = 'Pending';
+      case TaskStatus.inProgress: bg = BaaiTheme.info.withValues(alpha: 0.15);    fg = BaaiTheme.info;    label = 'In Progress';
+      case TaskStatus.completed:  bg = BaaiTheme.success.withValues(alpha: 0.15); fg = BaaiTheme.success; label = 'Done';
+      case TaskStatus.overdue:    bg = BaaiTheme.error.withValues(alpha: 0.15);   fg = BaaiTheme.error;   label = 'Overdue';
     }
     return AnimatedContainer(
       duration: BaaiTheme.mediumAnim,
@@ -298,7 +298,7 @@ class _ActionButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         child: Container(
           width: size, height: size,
-          decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
           child: Center(child: Icon(icon, size: isKiosk ? 24 : 18, color: color)),
         ),
       ),
@@ -371,7 +371,7 @@ class _PulsingMicButtonState extends State<PulsingMicButton> with TickerProvider
                     gradient: isRec ? BaaiTheme.warmGradient : BaaiTheme.primaryGradient,
                     boxShadow: [
                       BoxShadow(
-                        color: (isRec ? BaaiTheme.error : BaaiTheme.primary).withOpacity(0.5),
+                        color: (isRec ? BaaiTheme.error : BaaiTheme.primary).withValues(alpha: 0.5),
                         blurRadius: isRec ? 24 : 12,
                         spreadRadius: isRec ? 2 : 0,
                       ),
@@ -401,7 +401,7 @@ class _PulsingMicButtonState extends State<PulsingMicButton> with TickerProvider
           height: h,
           margin: EdgeInsets.symmetric(horizontal: widget.isKiosk ? 2.5 : 1.5),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(2),
           ),
         );
@@ -439,7 +439,7 @@ class _MicButtonPainter extends CustomPainter {
         final radius = buttonSize / 2 + progress * 30;
         final opacity = (1.0 - progress) * 0.35;
         final paint = Paint()
-          ..color = accentColor.withOpacity(opacity)
+          ..color = accentColor.withValues(alpha: opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.5 - progress * 1.5;
         canvas.drawCircle(center, radius, paint);
@@ -449,7 +449,7 @@ class _MicButtonPainter extends CustomPainter {
       final radius = buttonSize / 2 + 4 + idleValue * 6;
       final opacity = 0.08 + idleValue * 0.12;
       final paint = Paint()
-        ..color = accentColor.withOpacity(opacity)
+        ..color = accentColor.withValues(alpha: opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawCircle(center, radius, paint);
@@ -511,7 +511,7 @@ class _InventoryTileState extends State<InventoryTile> with SingleTickerProvider
                     builder: (context, child) {
                       final opacity = 0.6 + _lowStockPulse.value * 0.4;
                       final scale = 1.0 + _lowStockPulse.value * 0.08;
-                      return Transform.scale(
+                      return Transform.scaleByDouble(
                         scale: scale,
                         child: Opacity(
                           opacity: opacity,
@@ -522,11 +522,11 @@ class _InventoryTileState extends State<InventoryTile> with SingleTickerProvider
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: BaaiTheme.error.withOpacity(0.2),
+                        color: BaaiTheme.error.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: BaaiTheme.error.withOpacity(0.4)),
+                        border: Border.all(color: BaaiTheme.error.withValues(alpha: 0.4)),
                         boxShadow: [
-                          BoxShadow(color: BaaiTheme.error.withOpacity(0.15), blurRadius: 8),
+                          BoxShadow(color: BaaiTheme.error.withValues(alpha: 0.15), blurRadius: 8),
                         ],
                       ),
                       child: Row(
@@ -574,7 +574,7 @@ class _InventoryTileState extends State<InventoryTile> with SingleTickerProvider
                     label: const Text('Reorder', style: TextStyle(fontSize: 11)),
                     style: TextButton.styleFrom(
                       foregroundColor: BaaiTheme.textPrimary,
-                      backgroundColor: BaaiTheme.accent.withOpacity(0.2),
+                      backgroundColor: BaaiTheme.accent.withValues(alpha: 0.2),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -666,7 +666,7 @@ class _AnimatedInventoryTileState extends State<AnimatedInventoryTile> with Sing
                     builder: (context, child) {
                       final opacity = 0.6 + _lowStockPulse.value * 0.4;
                       final scale = 1.0 + _lowStockPulse.value * 0.08;
-                      return Transform.scale(
+                      return Transform.scaleByDouble(
                         scale: scale,
                         child: Opacity(opacity: opacity, child: child),
                       );
@@ -674,11 +674,11 @@ class _AnimatedInventoryTileState extends State<AnimatedInventoryTile> with Sing
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: BaaiTheme.error.withOpacity(0.2),
+                        color: BaaiTheme.error.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: BaaiTheme.error.withOpacity(0.4)),
+                        border: Border.all(color: BaaiTheme.error.withValues(alpha: 0.4)),
                         boxShadow: [
-                          BoxShadow(color: BaaiTheme.error.withOpacity(0.15), blurRadius: 8),
+                          BoxShadow(color: BaaiTheme.error.withValues(alpha: 0.15), blurRadius: 8),
                         ],
                       ),
                       child: Row(
@@ -727,7 +727,7 @@ class _AnimatedInventoryTileState extends State<AnimatedInventoryTile> with Sing
                     label: const Text('Reorder', style: TextStyle(fontSize: 11)),
                     style: TextButton.styleFrom(
                       foregroundColor: BaaiTheme.textPrimary,
-                      backgroundColor: BaaiTheme.accent.withOpacity(0.2),
+                      backgroundColor: BaaiTheme.accent.withValues(alpha: 0.2),
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -780,19 +780,19 @@ class _StatCardState extends State<StatCard> {
       onExit: (_) => setState(() => _hovering = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        transform: _hovering ? (Matrix4.identity()..scale(1.03)) : Matrix4.identity(),
+        transform: _hovering ? (Matrix4.identity()..scaleByDouble(1.03)) : Matrix4.identity(),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: widget.gradient,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: widget.gradient.colors.first.withOpacity(_hovering ? 0.4 : 0.2), blurRadius: _hovering ? 24 : 12, offset: const Offset(0, 6)),
+            BoxShadow(color: widget.gradient.colors.first.withValues(alpha: _hovering ? 0.4 : 0.2), blurRadius: _hovering ? 24 : 12, offset: const Offset(0, 6)),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(widget.icon, color: Colors.white.withOpacity(0.85), size: 28),
+            Icon(widget.icon, color: Colors.white.withValues(alpha: 0.85), size: 28),
             const Spacer(),
             // Animated counter
             TweenAnimationBuilder<int>(
@@ -804,7 +804,7 @@ class _StatCardState extends State<StatCard> {
               },
             ),
             const SizedBox(height: 4),
-            Text(widget.title, style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.85))),
+            Text(widget.title, style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
           ],
         ),
       ),
@@ -936,7 +936,7 @@ class _VoiceCenterWidgetState extends State<VoiceCenterWidget> with SingleTicker
                         builder: (context, child) {
                           final double delay = index * 0.33;
                           double progress = (_pulseController.value + delay) % 1.0;
-                          return Transform.scale(
+                          return Transform.scaleByDouble(
                             scale: 1.0 + (progress * 1.5),
                             child: Opacity(
                               opacity: (1.0 - progress).clamp(0.0, 1.0) * 0.5,

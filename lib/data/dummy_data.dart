@@ -287,4 +287,18 @@ class DummyData {
       ),
     ];
   }
+
+  // ─── Wallet Data ───────────────────────────────────────────
+  static double get defaultWalletBalance => 45000.0;
+
+  static List<WalletTransaction> get walletTransactions {
+    final today = DateTime.now();
+    return [
+      WalletTransaction(id: 'wt-001', title: 'Salary - Lakshmi Devi', amount: 12000, category: 'Salary', date: today.subtract(const Duration(days: 2))),
+      WalletTransaction(id: 'wt-002', title: 'Blinkit Groceries', amount: 1540, category: 'Grocery', date: today.subtract(const Duration(days: 3))),
+      WalletTransaction(id: 'wt-003', title: 'Salary - Ramu Kumar', amount: 8000, category: 'Salary', date: today.subtract(const Duration(days: 4))),
+      WalletTransaction(id: 'wt-004', title: 'Electricity Bill', amount: 4300, category: 'Maintenance', date: today.subtract(const Duration(days: 5))),
+      WalletTransaction(id: 'wt-005', title: 'Fund Added', amount: 50000, category: 'Top-up', date: today.subtract(const Duration(days: 6)), isDeduction: false),
+    ];
+  }
 }

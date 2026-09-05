@@ -30,6 +30,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
     _voiceService.updateStockLevels(context.read<AppState>().currentStockLevels);
     _voiceService.onResult.listen(_handleVoiceResult);
     _voiceService.onListeningChange.listen((listening) {
+      if (!mounted) return;
       context.read<AppState>().setRecording(listening);
     });
   }
@@ -151,13 +152,13 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           color: BaaiTheme.surface,
-          border: Border(bottom: BorderSide(color: BaaiTheme.divider.withOpacity(0.5))),
+          border: Border(bottom: BorderSide(color: BaaiTheme.divider.withValues(alpha: 0.5))),
         ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundColor: BaaiTheme.primary.withOpacity(0.2),
+              backgroundColor: BaaiTheme.primary.withValues(alpha: 0.2),
               child: const Icon(Icons.person, color: BaaiTheme.primaryDark),
             ),
             const SizedBox(width: 12),
@@ -174,7 +175,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               AnimatedContainer(
                 duration: BaaiTheme.fastAnim,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: BaaiTheme.error.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(color: BaaiTheme.error.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
                 child: Row(
                   children: [
                     _PulsingDot(color: BaaiTheme.error),
@@ -257,7 +258,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
               if (state.lowStockItems.isNotEmpty)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: BaaiTheme.error.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: BaaiTheme.error.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
                   child: Row(
                     children: [
                       const Icon(Icons.warning_amber_rounded, size: 14, color: BaaiTheme.error),
@@ -338,9 +339,9 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
           child: Row(
             children: [
               CircleAvatar(
-                radius: 24,
-                backgroundColor: BaaiTheme.primary.withOpacity(0.2),
-                child: Icon(s.roleIcon, color: BaaiTheme.primaryDark, size: 24),
+                radius: 28,
+                backgroundColor: BaaiTheme.surfaceLight,
+                child: Icon(s.roleIcon, color: BaaiTheme.primaryDark, size: 28),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -348,24 +349,31 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(s.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
+                    Text(s.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
                     const SizedBox(height: 4),
                     Text(s.roleLabel, style: const TextStyle(fontSize: 12, color: BaaiTheme.textSecondary)),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Container(
-                          width: 8, height: 8,
-                          decoration: BoxDecoration(color: s.isOnDuty ? BaaiTheme.success : BaaiTheme.textSecondary, shape: BoxShape.circle),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: s.isOnDuty ? BaaiTheme.primary.withValues(alpha: 0.2) : BaaiTheme.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(s.isOnDuty ? 'Present' : 'Absent', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: s.isOnDuty ? BaaiTheme.primaryDark : BaaiTheme.error)),
                         ),
-                        const SizedBox(width: 6),
-                        Text(s.isOnDuty ? 'On Duty' : 'Off Duty', style: TextStyle(fontSize: 11, color: s.isOnDuty ? BaaiTheme.success : BaaiTheme.textSecondary)),
                         const SizedBox(width: 12),
-                        Text('$taskCount tasks', style: const TextStyle(fontSize: 11, color: BaaiTheme.textSecondary)),
+                        Text('$taskCount active tasks', style: const TextStyle(fontSize: 11, color: BaaiTheme.textSecondary)),
                       ],
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                onPressed: () => state.toggleStaffDuty(s.id),
+                icon: Icon(s.isOnDuty ? Icons.logout : Icons.login, color: BaaiTheme.textSecondary),
+                tooltip: 'Toggle Attendance',
               ),
             ],
           ),
@@ -377,7 +385,7 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
   // ─── Pantry Tab ────────────────────────────────────────────
   Widget _buildPantry(AppState state) {
     final categories = state.inventory.map((i) => i.category).toSet().toList()..sort();
-    final lowStockCount = state.lowStockItems.length;
+    final lowStockItems = state.lowStockItems;
 
     return SingleChildScrollView(
       key: const ValueKey('pantry'),
@@ -385,15 +393,54 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Text('Smart Pantry', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
-              const Spacer(),
-              if (lowStockCount > 0)
-                _PulsingLowStockBanner(count: lowStockCount),
-            ],
-          ),
-          const SizedBox(height: 20),
+          const Text('Smart Pantry', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
+          const SizedBox(height: 16),
+          
+          if (lowStockItems.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: BaaiTheme.error.withValues(alpha: 0.05),
+                border: Border.all(color: BaaiTheme.error.withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, size: 18, color: BaaiTheme.error),
+                      const SizedBox(width: 8),
+                      Text('Low Stock Warning (${lowStockItems.length})', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: BaaiTheme.error)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...lowStockItems.map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(item.name, style: const TextStyle(fontSize: 13, color: BaaiTheme.textPrimary)),
+                        ElevatedButton(
+                          onPressed: () {}, // 1-tap reorder
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: BaaiTheme.primary,
+                            foregroundColor: BaaiTheme.textPrimary,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                            minimumSize: const Size(60, 28),
+                            elevation: 0,
+                          ),
+                          child: const Text('Reorder', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                        )
+                      ],
+                    ),
+                  )),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+          
           // Recipes section
           const Text('Recipes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
           const SizedBox(height: 10),
@@ -461,16 +508,85 @@ class _AdminDashboardState extends State<AdminDashboard> with TickerProviderStat
 
   // ─── Wallet Tab ─────────────────────────────────────────────
   Widget _buildWallet(AppState state) {
-    return Center(
+    return SingleChildScrollView(
       key: const ValueKey('wallet'),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.account_balance_wallet, size: 80, color: BaaiTheme.primary.withOpacity(0.5)),
+          // Financial Overview Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [BaaiTheme.primary.withValues(alpha: 0.9), BaaiTheme.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: BaaiTheme.primary.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Household Balance', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
+                const SizedBox(height: 8),
+                Text('₹${state.walletBalance.toStringAsFixed(2)}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: BaaiTheme.textPrimary)),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Monthly Expense: ₹27,840', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: BaaiTheme.textPrimary)),
+                    Icon(Icons.trending_up, size: 16, color: BaaiTheme.error.withValues(alpha: 0.8)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          
+          const Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
           const SizedBox(height: 16),
-          const Text('Wallet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: BaaiTheme.textPrimary)),
-          const SizedBox(height: 8),
-          const Text('Manage expenses and staff payments here.', style: TextStyle(color: BaaiTheme.textSecondary)),
+          
+          ...state.transactions.map((tx) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BaaiTheme.glassCard,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: BaaiTheme.surfaceLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    tx.isDeduction ? Icons.arrow_upward : Icons.arrow_downward,
+                    size: 18,
+                    color: tx.isDeduction ? BaaiTheme.error : BaaiTheme.success,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tx.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: BaaiTheme.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text(tx.category, style: const TextStyle(fontSize: 11, color: BaaiTheme.textSecondary)),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${tx.isDeduction ? '-' : '+'}₹${tx.amount.toStringAsFixed(0)}',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: tx.isDeduction ? BaaiTheme.textPrimary : BaaiTheme.success),
+                ),
+              ],
+            ),
+          )),
         ],
       ),
     );
@@ -500,9 +616,9 @@ class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderState
         return Container(
           width: 8, height: 8,
           decoration: BoxDecoration(
-            color: widget.color.withOpacity(0.5 + _ctrl.value * 0.5),
+            color: widget.color.withValues(alpha: 0.5 + _ctrl.value * 0.5),
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: widget.color.withOpacity(0.3 * _ctrl.value), blurRadius: 6)],
+            boxShadow: [BoxShadow(color: widget.color.withValues(alpha: 0.3 * _ctrl.value), blurRadius: 6)],
           ),
         );
       },
@@ -536,10 +652,10 @@ class _PulsingLowStockBannerState extends State<_PulsingLowStockBanner> with Sin
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: BaaiTheme.error.withOpacity(0.15),
+          color: BaaiTheme.error.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: BaaiTheme.error.withOpacity(0.3)),
-          boxShadow: [BoxShadow(color: BaaiTheme.error.withOpacity(0.1), blurRadius: 10)],
+          border: Border.all(color: BaaiTheme.error.withValues(alpha: 0.3)),
+          boxShadow: [BoxShadow(color: BaaiTheme.error.withValues(alpha: 0.1), blurRadius: 10)],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

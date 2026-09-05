@@ -34,9 +34,9 @@ class BaaiTheme {
   static BoxDecoration get glassCard => BoxDecoration(
     color: card,
     borderRadius: BorderRadius.circular(16),
-    border: Border.all(color: divider.withOpacity(0.5), width: 1),
+    border: Border.all(color: divider.withValues(alpha: 0.5), width: 1),
     boxShadow: [
-      BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4)),
+      BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4)),
     ],
   );
 
@@ -45,8 +45,8 @@ class BaaiTheme {
     borderRadius: BorderRadius.circular(16),
     border: Border.all(color: primary, width: 1.5),
     boxShadow: [
-      BoxShadow(color: primary.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8)),
-      BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 6)),
+      BoxShadow(color: primary.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8)),
+      BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 6)),
     ],
   );
 
@@ -56,7 +56,7 @@ class BaaiTheme {
     borderRadius: BorderRadius.circular(20),
     border: Border.all(color: divider, width: 2),
     boxShadow: [
-      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 24, offset: const Offset(0, 8)),
+      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 24, offset: const Offset(0, 8)),
     ],
   );
 
@@ -65,17 +65,17 @@ class BaaiTheme {
     borderRadius: BorderRadius.circular(20),
     border: Border.all(color: primary, width: 2),
     boxShadow: [
-      BoxShadow(color: primary.withOpacity(0.2), blurRadius: 30, offset: const Offset(0, 10)),
+      BoxShadow(color: primary.withValues(alpha: 0.2), blurRadius: 30, offset: const Offset(0, 10)),
     ],
   );
 
   // ─── Sandbox Toolbar ───────────────────────────────────────
   static BoxDecoration get sandboxToolbar => BoxDecoration(
-    color: surface.withOpacity(0.95),
+    color: surface.withValues(alpha: 0.95),
     borderRadius: BorderRadius.circular(16),
     border: Border.all(color: divider, width: 1.5),
     boxShadow: [
-      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 30, offset: const Offset(0, 8)),
+      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 30, offset: const Offset(0, 8)),
     ],
   );
 

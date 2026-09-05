@@ -57,8 +57,8 @@ class _SandboxToolbarState extends State<SandboxToolbar> with SingleTickerProvid
                 decoration: BaaiTheme.sandboxToolbar.copyWith(
                   border: Border.all(
                     color: _hovering
-                        ? BaaiTheme.accent.withOpacity(0.45)
-                        : BaaiTheme.accent.withOpacity(0.2),
+                        ? BaaiTheme.accent.withValues(alpha: 0.45)
+                        : BaaiTheme.accent.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                 ),
@@ -102,7 +102,7 @@ class _SandboxToolbarState extends State<SandboxToolbar> with SingleTickerProvid
                     Container(
                       width: 1, height: 28,
                       margin: const EdgeInsets.symmetric(horizontal: 10),
-                      color: BaaiTheme.divider.withOpacity(0.5),
+                      color: BaaiTheme.divider.withValues(alpha: 0.5),
                     ),
 
                     // ─── Reset Button ──────────────────────────
@@ -132,10 +132,10 @@ class _SandboxToolbarState extends State<SandboxToolbar> with SingleTickerProvid
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? BaaiTheme.accent.withOpacity(0.15) : Colors.transparent,
+          color: active ? BaaiTheme.accent.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
           border: active
-              ? Border.all(color: BaaiTheme.accent.withOpacity(0.45), width: 1.5)
+              ? Border.all(color: BaaiTheme.accent.withValues(alpha: 0.45), width: 1.5)
               : Border.all(color: Colors.transparent),
         ),
         child: Row(
@@ -158,7 +158,7 @@ class _SandboxToolbarState extends State<SandboxToolbar> with SingleTickerProvid
                 decoration: BoxDecoration(
                   color: BaaiTheme.accent,
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: BaaiTheme.accent.withOpacity(0.5), blurRadius: 6)],
+                  boxShadow: [BoxShadow(color: BaaiTheme.accent.withValues(alpha: 0.5), blurRadius: 6)],
                 ),
               ),
             ],
@@ -175,9 +175,9 @@ class _SandboxToolbarState extends State<SandboxToolbar> with SingleTickerProvid
         duration: BaaiTheme.fastAnim,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
-          color: BaaiTheme.warning.withOpacity(0.1),
+          color: BaaiTheme.warning.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: BaaiTheme.warning.withOpacity(0.3)),
+          border: Border.all(color: BaaiTheme.warning.withValues(alpha: 0.3)),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
@@ -228,7 +228,7 @@ class _SandboxToolbarState extends State<SandboxToolbar> with SingleTickerProvid
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
             decoration: BoxDecoration(
-              color: BaaiTheme.card.withOpacity(0.5),
+              color: BaaiTheme.card.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(9),
             ),
             child: const Icon(Icons.close, size: 14, color: BaaiTheme.textSecondary),

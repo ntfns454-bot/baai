@@ -222,3 +222,22 @@ class BaaiAlert {
     }
   }
 }
+
+// --- Wallet Model ---------------------------------------------
+class WalletTransaction {
+  final String id;
+  final String title;
+  final double amount;
+  final DateTime date;
+  final String category;
+  final bool isDeduction;
+
+  WalletTransaction({
+    required this.id,
+    required this.title,
+    required this.amount,
+    required this.category,
+    this.isDeduction = true,
+    DateTime? date,
+  }) : date = date ?? DateTime.now();
+}
